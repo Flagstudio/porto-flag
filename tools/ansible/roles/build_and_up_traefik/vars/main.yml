@@ -1,0 +1,18 @@
+#required
+# Не изменяйте это значение
+traefik_directory_name: traefik/
+#required
+# Не изменяйте это значение
+traefik_network: traefik-public
+#required
+# Email администратора Traefik, например: admin@domain.tld
+admin_email:
+#required
+# URI доступа к WEB-UI Traefikб например: traefik.damain.tld
+traefik_uri:
+#required
+# Имя пользователя для базовой авторизации, например: 'admin'
+basic_auth_login: ''
+# Пароль пользователя для базовой авторизации, например: 'secret'
+#required
+basic_auth_password: ''

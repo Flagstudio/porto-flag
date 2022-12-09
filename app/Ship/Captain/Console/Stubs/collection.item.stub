@@ -1,0 +1,10 @@
+<?php
+
+namespace App\{{layer-name}}\{{container-name}}\Domain\Properties\Collections\Items;
+
+use App\Ship\Parents\Collections\Items\Item;
+
+class {{class-name}} extends Item
+{
+    public int $field;
+}

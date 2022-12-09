@@ -1,0 +1,4 @@
+- name: Login to GitLab container registry
+  command:
+    cmd: docker login -u {{gitlab_deploy_user}} -p {{gitlab_deploy_password}} registry.gitlab.com
+  when: (gitlab_deploy_user | default(False)) and (gitlab_deploy_password | default(False)) and (gitlab_deploy_password | default(False))

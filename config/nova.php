@@ -1,0 +1,134 @@
+<?php
+
+use App\Ship\Captain\Foundation\Middleware\RenameUploadedFiles;
+use App\Ship\Nova\ActionResource;
+use Laravel\Nova\Http\Middleware\Authenticate;
+use Laravel\Nova\Http\Middleware\Authorize;
+use Laravel\Nova\Http\Middleware\BootTools;
+use Laravel\Nova\Http\Middleware\DispatchServingNovaEvent;
+
+return [
+    /*
+    |--------------------------------------------------------------------------
+    | Nova App Name
+    |--------------------------------------------------------------------------
+    |
+    | This value is the name of your application. This value is used when the
+    | framework needs to display the name of the application within the UI
+    | or in other locations. Of course, you're free to change the value.
+    |
+    */
+
+    'name' => env('APP_NAME', 'Nova Site'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Nova App URL
+    |--------------------------------------------------------------------------
+    |
+    | This URL is where users will be directed when clicking the application
+    | name in the Nova navigation bar. You are free to change this URL to
+    | any location you wish depending on the needs of your application.
+    |
+    */
+
+    'url' => env('APP_URL', '/'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Nova Path
+    |--------------------------------------------------------------------------
+    |
+    | This is the URI path where Nova will be accessible from. Feel free to
+    | change this path to anything you like. Note that this URI will not
+    | affect Nova's internal API routes which aren't exposed to users.
+    |
+    */
+
+    'path' => '/_admin',
+
+    /*
+    |--------------------------------------------------------------------------
+    | Nova Authentication Guard
+    |--------------------------------------------------------------------------
+    |
+    | This configuration option defines the authentication guard that will
+    | be used to protect your Nova routes. This option should match one
+    | of the authentication guards defined in the "auth" config file.
+    |
+    */
+
+    'guard' => env('NOVA_GUARD', 'web'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Nova Password Reset Broker
+    |--------------------------------------------------------------------------
+    |
+    | This configuration option defines the password broker that will be
+    | used when passwords are reset. This option should mirror one of
+    | the password reset options defined in the "auth" config file.
+    |
+    */
+
+    'passwords' => env('NOVA_PASSWORDS', null),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Nova Route Middleware
+    |--------------------------------------------------------------------------
+    |
+    | These middleware will be assigned to every Nova route, giving you the
+    | chance to add your own middleware to this stack or override any of
+    | the existing middleware. Or, you can just stick with this stack.
+    |
+    */
+
+    'middleware' => [
+        'web',
+        Authenticate::class,
+        DispatchServingNovaEvent::class,
+        BootTools::class,
+        Authorize::class,
+        RenameUploadedFiles::class,
+        'optimizeImages' => \Spatie\LaravelImageOptimizer\Middlewares\OptimizeImages::class,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Nova Pagination Type
+    |--------------------------------------------------------------------------
+    |
+    | This option defines the visual style used in Nova's resource pagination.
+    | You may choose between 3 types: "simple", "load-more" and "links".
+    | Feel free to set this option to the visual style you like.
+    |
+    */
+
+    'pagination' => 'simple',
+
+    'tinymce_api_key' => env('TINYMCE_API_KEY'),
+
+    'tinymce_options' => [
+        'plugins' => [
+            'lists preview hr anchor pagebreak image wordcount fullscreen directionality paste textpattern link textcolor table'
+        ],
+        'toolbar' => 'undo redo | styleselect | bold italic forecolor backcolor | fontsizeselect | alignleft aligncenter alignright alignjustify | image | bullist numlist outdent indent | link | forecolor backcolor | table tabledelete | tableprops tablerowprops tablecellprops | tableinsertrowbefore tableinsertrowafter tabledeleterow | tableinsertcolbefore tableinsertcolafter tabledeletecol',
+        'fontsize_formats' => '8pt 10pt 10.5pt 11pt 12pt 14pt 16pt 18pt 20pt 22pt 24pt 26pt 28pt 36pt'
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Nova Action Resource Class
+    |--------------------------------------------------------------------------
+    |
+    | This configuration option allows you to specify a custom resource class
+    | to use instead of the type that ships with Nova. You may use this to
+    | define any extra form fields or other custom behavior as required.
+    |
+    */
+
+    'actions' => [
+        'resource' => ActionResource::class,
+    ],
+];

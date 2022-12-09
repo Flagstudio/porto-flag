@@ -1,0 +1,7 @@
+#required
+# Не изменяйте это значение
+cadvisor_directory_name: cadvisor/
+
+#required
+# IP address сервера, на котором установлен мониторинг, запросы доступны только с этого адреса
+monitoring_node_ip:

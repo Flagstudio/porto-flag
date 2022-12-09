@@ -1,0 +1,13 @@
+<?php
+
+namespace App\{{layer-name}}\{{container-name}}\Domain\Factories;
+
+use App\{{layer-name}}\{{container-name}}\Domain\Entities\{{entity}};
+
+class {{class-name}}
+{
+    public function general(): {{entity}}
+    {
+        return new {{entity}}();
+    }
+}

@@ -1,0 +1,19 @@
+<?php
+
+namespace App\{{layer-name}}\{{container-name}}\Actions\SubAction;
+
+use App\Ship\Parents\Actions\SubAction;
+
+class {{class-name}} extends SubAction
+{
+    public function run($transporter)
+    {
+        try {
+            //TODO
+
+            return $this->success([]);
+        } catch(\Exception $e) {
+            return $this->error($e->getMessage());
+        }
+    }
+}

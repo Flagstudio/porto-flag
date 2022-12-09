@@ -1,0 +1,82 @@
+# required
+# Какая версия python будет использоваться на удаленном хосте
+ansible_python_interpreter: /usr/bin/python3
+
+# required
+# Хостовый ip address для доступа по SSH, e.g.: 10.192.150.68
+ansible_host: 5.188.117.153 
+
+# required
+# Хостовый порт  для доступа по SSH, e.g.: 22
+ansible_port: 22
+
+# required
+# Пользователь для ssh подключения, например: root
+ansible_user: root
+
+# required
+# Пароль для первичного ssh подключения для передачи публичного SSH ключа, например: 12345
+ansible_ssh_pass: 
+
+# required
+# Путь до файла приватного SSH ключа
+# Путь должен быть абсолютным, например: /home/user/.ssh/work/id_rsa
+ansible_ssh_private_key_file: /root/.ssh/id_rsa
+
+# required
+# Путь до файла публичного SSH ключа
+# Путь должен быть абсолютным, например: /home/user/.ssh/work/id_rsa.pub
+ansible_ssh_public_key_file: /root/.ssh/id_rsa.pub
+
+# required
+# Расположение каталога приложения на удаленном хосте
+# Имя каталога должно заканчиваться на '/', например: /root/www/tairai/
+# Путь должен быть абсолютным
+project_remote_path: /var/www/tairai/
+
+# Если необходимо создать symlink для каталога проекта
+# Если нет, оставьте его пустым.
+# Путь должен быть абсолютным
+project_symlink_remote_path:
+
+# Если необходимо скопировать файлы или каталоги, необходимые для запуска приложения
+# Путь должен быть относительным для 'project_local_path' в файле all.yml
+# Не включайте файл .env в этот массив, используйте специальную переменную с именем 'env_file_for_upload'
+# Файлы и каталоги не должен иметь начальной косой черты '/' также имя каталога должно заканчиваться на '/'
+# e.g.: - database/
+project_files_path_for_upload:
+  #- docker/ssl/
+  #- dir_with_files/
+  #- samplefile.ext
+
+# Если для запуска приложения необходимы пустые каталоги, определите массив значений
+# Путь должен быть относительным для 'project_local_path' в файле all.yml
+# Имя каталога должно заканчиваться на '/' и не должно иметь ведущей косой черты '/'
+project_directories_path_need_to_be_created:
+  #- something_else_dir/
+  #- another_dir/
+
+# required
+# Этот файл будет переименован в docker-compose.yml на удаленном узле, например: docker-compose.prod.yml
+# Путь должен быть относительным для 'project_local_path' и не должно иметь ведущей косой черты '/'
+docker_compose_file_local_path_for_upload: docker-compose.prod.yml
+
+# required
+# Этот файл будет переименован в .env на удаленном узле
+# Path should be relative for 'project_local_path' in all.yml и не должно иметь ведущей косой черты '/',
+# например: .env.prod
+env_file_local_path_for_upload: .env.prod
+
+# Если требуется скопировать дамп базы данных для импорта, установите это значение, в противном случае оставьте его пустым, и миграции с начальными значениями будут выполняться
+# Путь должен быть относительным для 'project_local_path' в файле all.yml и не должно иметь ведущей косой черты '/',
+# например: db_backups/initial_database_dump.sql
+database_dump_local_path:
+
+# Если требуется скопировать архив хранилища, установите это значение, в противном случае оставьте его пустым, и будет размещена структура хранения laravel по умолчанию.
+# Путь должен быть относительным для 'project_local_path' в файле all.yml и не должно иметь ведущей косой черты '/',
+# например: storage.tar.gz
+storage_archive_local_path:
+
+# required
+# Публичный ключ для доступа 'gitlab runner' на хост
+gitlab_runner_public_key:

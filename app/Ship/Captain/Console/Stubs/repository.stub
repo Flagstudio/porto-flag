@@ -1,0 +1,23 @@
+<?php
+
+namespace App\{{layer-name}}\{{container-name}}\Domain\Repositories;
+
+use App\Containers\Record\Domain\Factories\{{factory-name}};
+use App\{{layer-name}}\{{container-name}}\Domain\Models\{{model-name}} as Model;
+use App\Ship\Parents\Repositories\Repository;
+use Illuminate\Container\Container as Application;
+
+class {{class-name}} extends Repository
+{
+    public function __construct(
+        Application $app,
+        private {{factory-name}} $factory,
+    ) {
+        parent::__construct($app);
+    }
+
+    public function model(): string
+    {
+        return Model::class;
+    }
+}

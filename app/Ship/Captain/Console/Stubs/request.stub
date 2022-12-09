@@ -1,0 +1,21 @@
+<?php
+
+namespace App\{{layer-name}}\{{container-name}}\Http\Requests;
+
+use App\{{layer-name}}\{{container-name}}\Transfers\Transporters\{{transporter-name}};
+use App\Ship\Parents\Requests\Request;
+
+class {{class-name}} extends Request
+{
+    public function transporter(): string
+    {
+        return {{transporter-name}}::class;
+    }
+
+    public function rules(): array
+    {
+        return [
+            //TODO
+        ];
+    }
+}

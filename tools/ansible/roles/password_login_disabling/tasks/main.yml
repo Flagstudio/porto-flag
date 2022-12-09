@@ -1,0 +1,17 @@
+- name: Password based logins are disabled - only public key based logins are allowed.
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: "{{item.regexp}}"
+    line: "{{item.line}}"
+  become: yes
+  with_items:
+    - {
+        regexp: "^#?AuthenticationMethods",
+        line: "AuthenticationMethods publickey",
+      }
+    - { regexp: "^#?PasswordAuthentication", line: "PasswordAuthentication no" }
+    - {
+        regexp: "^#?ChallengeResponseAuthentication",
+        line: "ChallengeResponseAuthentication no",
+      }
+    - { regexp: "^#?PubkeyAuthentication", line: "PubkeyAuthentication yes" }

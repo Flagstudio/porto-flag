@@ -1,0 +1,316 @@
+image: docker:latest
+
+variables:
+  DOCKER_DRIVER: overlay2
+  DOCKER_TLS_CERTDIR: "/certs"
+
+stages:
+  - build
+  - test
+  - deploy
+  - test-deploy
+
+before_script:
+  - mkdir -p ~/.ssh
+  - chmod 700 ~/.ssh
+  - echo "$SSH_PRIVATE_KEY" >> ~/.ssh/id_rsa
+  - chmod 400 ~/.ssh/id_rsa
+  - ssh-keyscan $HOSTNAME_PROD >> ~/.ssh/known_hosts
+  - ssh-keyscan $HOSTNAME_STAGING_188 >> ~/.ssh/known_hosts
+  - chmod 644 ~/.ssh/known_hosts
+
+
+build-master:
+  stage: build
+  rules:
+    - if: $CI_COMMIT_BRANCH == "master" && $CI_PROJECT_NAME == "tairai-2022" && $CI_PROJECT_ROOT_NAMESPACE == "tairai"
+  tags:
+    - tairai-ru-main
+  services:
+    - docker:dind
+  before_script:
+    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" registry.gitlab.com --password-stdin
+  script:
+    - docker build  --pull -f docker/app/Dockerfile_prod -t $CI_REGISTRY_IMAGE:latest_prod --build-arg COMPOSE_PROJECT_NAME=tairai-2022 --build-arg REPOSITORY_NAME=$REPOSITORY_NAME .
+    - docker push "$CI_REGISTRY_IMAGE:latest_prod"
+
+deploy-master:
+  stage: deploy
+  rules:
+    - if: $CI_COMMIT_BRANCH == "master" && $CI_PROJECT_NAME == "tairai-2022" && $CI_PROJECT_ROOT_NAMESPACE == "tairai"
+  tags:
+    - tairai-ru-main
+  before_script:
+    - ls -lah
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - echo "$SSH_PRIVATE_KEY" >> ~/.ssh/id_rsa
+    - chmod 400 ~/.ssh/id_rsa
+    - ssh-keyscan $HOSTNAME_PROD >> ~/.ssh/known_hosts
+    - chmod 644 ~/.ssh/known_hosts
+  script:
+    - scp docker-compose.prod.yml $USER_PROD@$HOSTNAME_PROD:$PATH_PROD/docker-compose.yml
+    - scp .env.example $USER_PROD@$HOSTNAME_PROD:$PATH_PROD/.env.example
+    - ssh -T $USER_PROD@$HOSTNAME_PROD "cd $PATH_PROD &&
+      sudo docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" registry.gitlab.com"
+    - ssh -T $USER_PROD@$HOSTNAME_PROD "cd $PATH_PROD &&
+      sudo docker pull $CI_REGISTRY_IMAGE:latest_prod"
+    - ssh -T $USER_PROD@$HOSTNAME_PROD "cd $PATH_PROD &&
+      sed -i 's/GIT_COMMIT=.*/GIT_COMMIT=\""$CI_COMMIT_SHORT_SHA"\"/' .env"
+    - ssh -T $USER_PROD@$HOSTNAME_PROD "cd $PATH_PROD &&
+      sed -i 's/GIT_BRANCH=.*/GIT_BRANCH=\""$CI_COMMIT_BRANCH"\"/' .env"
+    - ssh -T $USER_PROD@$HOSTNAME_PROD "cd $PATH_PROD &&
+      sed -i 's/GIT_DATE=.*/GIT_DATE=\""$CI_COMMIT_TIMESTAMP"\"/' .env"
+    - ssh -T $USER_PROD@$HOSTNAME_PROD "cd $PATH_PROD &&
+      sudo docker-compose up --remove-orphans -d app"
+    - ssh -T $USER_PROD@$HOSTNAME_PROD "cd $PATH_PROD &&
+      sudo docker-compose exec -T app php artisan migrate --force"
+    - ssh -T $USER_PROD@$HOSTNAME_PROD "cd $PATH_PROD &&
+      sudo docker-compose exec -T app php artisan route:clear"
+    - ssh -T $USER_PROD@$HOSTNAME_PROD "cd $PATH_PROD &&
+      sudo docker-compose exec -T app php artisan optimize"
+    - ssh -T $USER_PROD@$HOSTNAME_PROD "cd $PATH_PROD &&
+      sudo docker  image prune --force"
+    - ssh -T $USER_PROD@$HOSTNAME_PROD "cd $PATH_PROD &&
+      sudo chmod -R 777 storage/ .env"
+
+build-staging:
+  stage: build
+  rules:
+    - if: $CI_COMMIT_BRANCH == "premaster" && $CI_PROJECT_NAME == "tairai" && $CI_PROJECT_ROOT_NAMESPACE == "flagstudio"
+  services:
+    - docker:dind
+  before_script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" registry.gitlab.com
+  script:
+    - docker build  --pull -f docker/app/Dockerfile_stage -t $CI_REGISTRY_IMAGE:latest_staging --build-arg COMPOSE_PROJECT_NAME=tairai --build-arg REPOSITORY_NAME=${REPOSITORY_NAME:-flagstudio} .
+    - docker push "$CI_REGISTRY_IMAGE:latest_staging"
+
+test-staging:
+  image: $CI_REGISTRY_IMAGE:latest_staging
+  stage: test-deploy
+  rules:
+    - if: $CI_COMMIT_BRANCH == "premaster" && $CI_PROJECT_NAME == "tairai" && $CI_PROJECT_ROOT_NAMESPACE == "flagstudio"
+  services:
+    - name: postgres:13
+      alias: postgrestest
+  variables:
+    POSTGRES_DB: tairai
+    POSTGRES_USER: tairai
+    POSTGRES_PASSWORD: "12345"
+    POSTGRES_HOST_AUTH_METHOD: trust
+  coverage: '/^\s*Lines:\s*\d+.\d+\%/'
+  before_script:
+    - ls
+  script:
+    - cp .env.example .env
+    - cp phpunit.xml.example phpunit.xml
+    - export DB_TEST_HOST=postgrestest
+    - export DB_DATABASE=$POSTGRES_DB
+    - export DB_USERNAME=$POSTGRES_USER
+    - export DB_PASSWORD=$POSTGRES_PASSWORD
+    - export ADMIN_PASSWORD=123
+    - export APP_DEBUG=true
+    - export APP_ENV=testing
+    - pecl install pcov
+    - docker-php-ext-enable pcov
+    - composer i -q
+    - php artisan key:generate
+    - npm i
+    - npm run dev
+    - vendor/bin/phpunit -d memory_limit=1024M --testdox --coverage-text  --colors=never --exclude-group no-ci
+
+deploy-staging:
+  stage: test-deploy
+  rules:
+    - if: $CI_COMMIT_BRANCH == "premaster" && $CI_PROJECT_NAME == "tairai" && $CI_PROJECT_ROOT_NAMESPACE == "flagstudio"
+  script:
+    - scp docker-compose.staging.yml $USER_STAGING_188@$HOSTNAME_STAGING_188:$PATH_STAGING_188/docker-compose.yml
+    - scp .env.example $USER_STAGING_188@$HOSTNAME_STAGING_188:$PATH_STAGING_188/.env.example
+    - ssh -T $USER_STAGING_188@$HOSTNAME_STAGING_188 "cd $PATH_STAGING_188 &&
+      docker network inspect $CI_PROJECT_NAME > /dev/null 2>&1 || docker network create --attachable $CI_PROJECT_NAME"
+    - ssh -T $USER_STAGING_188@$HOSTNAME_STAGING_188 "cd $PATH_STAGING_188 &&
+      docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" registry.gitlab.com"
+    - ssh -T $USER_STAGING_188@$HOSTNAME_STAGING_188 "cd $PATH_STAGING_188 &&
+      docker pull $CI_REGISTRY_IMAGE:latest_staging"
+    - ssh -T $USER_STAGING_188@$HOSTNAME_STAGING_188 "cd $PATH_STAGING_188 &&
+      sed -i 's/GIT_COMMIT=.*/GIT_COMMIT=\""$CI_COMMIT_SHORT_SHA"\"/' .env"
+    - ssh -T $USER_STAGING_188@$HOSTNAME_STAGING_188 "cd $PATH_STAGING_188 &&
+      sed -i 's/GIT_BRANCH=.*/GIT_BRANCH=\""$CI_COMMIT_BRANCH"\"/' .env"
+    - ssh -T $USER_STAGING_188@$HOSTNAME_STAGING_188 "cd $PATH_STAGING_188 &&
+      sed -i 's/GIT_DATE=.*/GIT_DATE=\""$CI_COMMIT_TIMESTAMP"\"/' .env"
+    - ssh -T $USER_STAGING_188@$HOSTNAME_STAGING_188 "cd $PATH_STAGING_188 &&
+      docker-compose up --remove-orphans -d"
+    - ssh -T $USER_STAGING_188@$HOSTNAME_STAGING_188 "cd $PATH_STAGING_188 &&
+      docker-compose exec -T app php artisan optimize:clear &&
+      docker-compose exec -T app php artisan scribe:generate &&
+      docker-compose exec -T app php artisan optimize"
+    - ssh -T $USER_STAGING_188@$HOSTNAME_STAGING_188 "cd $PATH_STAGING_188 &&
+      docker-compose exec -T app php artisan migrate --force --quiet"
+    - ssh -T $USER_STAGING_188@$HOSTNAME_STAGING_188 "cd $PATH_STAGING_188 &&
+      docker image prune --force"
+    - ssh -T $USER_STAGING_188@$HOSTNAME_STAGING_188 "cd $PATH_STAGING_188 &&
+      chmod -R 777 storage/ .env data/"
+
+build-develop:
+  stage: build
+  rules:
+    - if: $CI_COMMIT_BRANCH == "develop" && $CI_PROJECT_NAME == "tairai" && $CI_PROJECT_ROOT_NAMESPACE == "flagstudio"
+  services:
+    - docker:dind
+  before_script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" registry.gitlab.com
+  script:
+    - docker build  --pull -f docker/app/Dockerfile_dev -t $CI_REGISTRY_IMAGE:latest_dev --build-arg WITH_DEV=true --build-arg COMPOSE_PROJECT_NAME=tairai --build-arg REPOSITORY_NAME=${REPOSITORY_NAME:-flagstudio} .
+    - docker push "$CI_REGISTRY_IMAGE:latest_dev"
+
+test-develop:
+  image: $CI_REGISTRY_IMAGE:latest_dev
+  stage: test-deploy
+  rules:
+    - if: $CI_COMMIT_BRANCH == "develop" && $CI_PROJECT_NAME == "tairai" && $CI_PROJECT_ROOT_NAMESPACE == "flagstudio"
+  services:
+    - name: postgres:13
+      alias: postgrestest
+  variables:
+    POSTGRES_DB: tairai
+    POSTGRES_USER: tairai
+    POSTGRES_PASSWORD: "12345"
+    POSTGRES_HOST_AUTH_METHOD: trust
+  coverage: '/^\s*Lines:\s*\d+.\d+\%/'
+  before_script:
+    - ls
+  script:
+    - cp .env.example .env
+    - cp phpunit.xml.example phpunit.xml
+    - export DB_TEST_HOST=postgrestest
+    - export DB_DATABASE=$POSTGRES_DB
+    - export DB_USERNAME=$POSTGRES_USER
+    - export DB_PASSWORD=$POSTGRES_PASSWORD
+    - export ADMIN_PASSWORD=123
+    - export APP_DEBUG=true
+    - export APP_ENV=testing
+    - pecl install pcov
+    - docker-php-ext-enable pcov
+    - composer i -q
+    - php artisan key:generate
+    - npm i
+    - npm run dev
+    - vendor/bin/phpunit -d memory_limit=1024M --testdox --coverage-text  --colors=never --exclude-group no-ci
+
+deploy-develop:
+  stage: test-deploy
+  rules:
+    - if: $CI_COMMIT_BRANCH == "develop" && $CI_PROJECT_NAME == "tairai" && $CI_PROJECT_ROOT_NAMESPACE == "flagstudio"
+  script:
+    - scp docker-compose.test.yml $USER_STAGING_188@$HOSTNAME_STAGING_188:$PATH_DEVELOP_188/docker-compose.yml
+    - scp .env.example $USER_STAGING_188@$HOSTNAME_STAGING_188:$PATH_DEVELOP_188/.env.example
+    - ssh -T $USER_STAGING_188@$HOSTNAME_STAGING_188 "cd $PATH_DEVELOP_188 &&
+      docker network inspect $CI_PROJECT_NAME > /dev/null 2>&1 || docker network create --attachable $CI_PROJECT_NAME"
+    - ssh -T $USER_STAGING_188@$HOSTNAME_STAGING_188 "cd $PATH_DEVELOP_188 &&
+      docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" registry.gitlab.com"
+    - ssh -T $USER_STAGING_188@$HOSTNAME_STAGING_188 "cd $PATH_DEVELOP_188 &&
+      docker pull $CI_REGISTRY_IMAGE:latest_dev"
+    - ssh -T $USER_STAGING_188@$HOSTNAME_STAGING_188 "cd $PATH_DEVELOP_188 &&
+      sed -i 's/GIT_COMMIT=.*/GIT_COMMIT=\""$CI_COMMIT_SHORT_SHA"\"/' .env"
+    - ssh -T $USER_STAGING_188@$HOSTNAME_STAGING_188 "cd $PATH_DEVELOP_188 &&
+      sed -i 's/GIT_BRANCH=.*/GIT_BRANCH=\""$CI_COMMIT_BRANCH"\"/' .env"
+    - ssh -T $USER_STAGING_188@$HOSTNAME_STAGING_188 "cd $PATH_DEVELOP_188 &&
+      sed -i 's/GIT_DATE=.*/GIT_DATE=\""$CI_COMMIT_TIMESTAMP"\"/' .env"
+    - ssh -T $USER_STAGING_188@$HOSTNAME_STAGING_188 "cd $PATH_DEVELOP_188 &&
+      docker-compose up --remove-orphans -d"
+    - ssh -T $USER_STAGING_188@$HOSTNAME_STAGING_188 "cd $PATH_DEVELOP_188 &&
+      docker-compose exec -T app php artisan optimize:clear &&
+      docker-compose exec -T app php artisan scribe:generate &&
+      docker-compose exec -T app php artisan optimize"
+    - ssh -T $USER_STAGING_188@$HOSTNAME_STAGING_188 "cd $PATH_DEVELOP_188 &&
+      docker-compose exec -T app php artisan migrate --force --quiet"
+    - ssh -T $USER_STAGING_188@$HOSTNAME_STAGING_188 "cd $PATH_DEVELOP_188 &&
+      docker image prune --force"
+    - ssh -T $USER_STAGING_188@$HOSTNAME_STAGING_188 "cd $PATH_DEVELOP_188 &&
+      chmod -R 777 storage/ .env data/"
+
+
+build-branch:
+  stage: build
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "push"
+      when: never
+    - when: always
+  services:
+    - docker:dind
+  before_script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" registry.gitlab.com
+  script:
+    - docker build  --pull -f docker/app/Dockerfile_dev -t $CI_REGISTRY_IMAGE:latest_dev --build-arg WITH_DEV=true --build-arg COMPOSE_PROJECT_NAME=tairai .
+    - docker push "$CI_REGISTRY_IMAGE:latest_dev"
+
+test-branch:
+  image: $CI_REGISTRY_IMAGE:latest_dev
+  stage: test-deploy
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "push"
+      when: never
+    - when: always
+  services:
+    - name: postgres:13
+      alias: postgrestest
+  variables:
+    POSTGRES_DB: tairai
+    POSTGRES_USER: tairai
+    POSTGRES_PASSWORD: "12345"
+    POSTGRES_HOST_AUTH_METHOD: trust
+  coverage: '/^\s*Lines:\s*\d+.\d+\%/'
+  before_script:
+    - ls
+  script:
+    - cp .env.example .env
+    - cp phpunit.xml.example phpunit.xml
+    - export DB_TEST_HOST=postgrestest
+    - export DB_DATABASE=$POSTGRES_DB
+    - export DB_USERNAME=$POSTGRES_USER
+    - export DB_PASSWORD=$POSTGRES_PASSWORD
+    - export ADMIN_PASSWORD=123
+    - export APP_DEBUG=true
+    - export APP_ENV=testing
+    - pecl install pcov
+    - docker-php-ext-enable pcov
+    - composer i -q
+    - php artisan key:generate
+    - npm i
+    - npm run dev
+    - vendor/bin/phpunit -d memory_limit=1024M --testdox --coverage-text  --colors=never --exclude-group no-ci
+
+deploy-branch:
+  stage: test-deploy
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "push"
+      when: never
+    - when: always
+  script:
+    - scp docker-compose.test.yml $USER_STAGING_188@$HOSTNAME_STAGING_188:$PATH_DEVELOP_188/docker-compose.yml
+    - scp .env.example $USER_STAGING_188@$HOSTNAME_STAGING_188:$PATH_DEVELOP_188/.env.example
+    - ssh -T $USER_STAGING_188@$HOSTNAME_STAGING_188 "cd $PATH_DEVELOP_188 &&
+      docker network inspect $CI_PROJECT_NAME > /dev/null 2>&1 || docker network create --attachable $CI_PROJECT_NAME"
+    - ssh -T $USER_STAGING_188@$HOSTNAME_STAGING_188 "cd $PATH_DEVELOP_188 &&
+      docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" registry.gitlab.com"
+    - ssh -T $USER_STAGING_188@$HOSTNAME_STAGING_188 "cd $PATH_DEVELOP_188 &&
+      docker pull $CI_REGISTRY_IMAGE:latest_dev"
+    - ssh -T $USER_STAGING_188@$HOSTNAME_STAGING_188 "cd $PATH_DEVELOP_188 &&
+      sed -i 's/GIT_COMMIT=.*/GIT_COMMIT=\""$CI_COMMIT_SHORT_SHA"\"/' .env"
+    - ssh -T $USER_STAGING_188@$HOSTNAME_STAGING_188 "cd $PATH_DEVELOP_188 &&
+      sed -i 's/GIT_BRANCH=.*/GIT_BRANCH=\""$CI_COMMIT_BRANCH"\"/' .env"
+    - ssh -T $USER_STAGING_188@$HOSTNAME_STAGING_188 "cd $PATH_DEVELOP_188 &&
+      sed -i 's/GIT_DATE=.*/GIT_DATE=\""$CI_COMMIT_TIMESTAMP"\"/' .env"
+    - ssh -T $USER_STAGING_188@$HOSTNAME_STAGING_188 "cd $PATH_DEVELOP_188 &&
+      docker-compose up --remove-orphans -d"
+    - ssh -T $USER_STAGING_188@$HOSTNAME_STAGING_188 "cd $PATH_DEVELOP_188 &&
+      docker-compose exec -T app php artisan optimize:clear &&
+      docker-compose exec -T app php artisan scribe:generate &&
+      docker-compose exec -T app php artisan optimize"
+    - ssh -T $USER_STAGING_188@$HOSTNAME_STAGING_188 "cd $PATH_DEVELOP_188 &&
+      docker-compose exec -T app php artisan migrate --force --quiet"
+    - ssh -T $USER_STAGING_188@$HOSTNAME_STAGING_188 "cd $PATH_DEVELOP_188 &&
+      docker image prune --force"
+    - ssh -T $USER_STAGING_188@$HOSTNAME_STAGING_188 "cd $PATH_DEVELOP_188 &&
+      chmod -R 777 storage/ .env data/"

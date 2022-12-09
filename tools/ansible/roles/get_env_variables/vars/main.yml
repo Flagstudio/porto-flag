@@ -1,0 +1,35 @@
+tmp_env_file_name: tmp_env
+tmp_env_file_path: "{{project_remote_path}}{{tmp_env_file_name}}"
+env_keys_for_parse:
+  - name: db_database
+    value: DB_DATABASE=
+  - name: db_host
+    value: DB_HOST=
+  - name: db_username
+    value: DB_USERNAME=
+  - name: db_password
+    value: DB_PASSWORD=
+  - name: db_connection
+    value: DB_CONNECTION=
+  - name: db_port
+    value: DB_PORT=
+  - name: app_name
+    value: APP_NAME=
+  - name: data_path_host
+    value: DATA_PATH_HOST=
+  - name: traefik_uri
+    value: TRAEFIK_URI=
+  - name: admin_email
+    value: ADMIN_EMAIL=
+  - name: basic_auth_username
+    value: BASIC_AUTH_USERNAME=
+  - name: basic_auth_password
+    value: BASIC_AUTH_PASSWORD=
+  - name: compose_project_name
+    value: COMPOSE_PROJECT_NAME=
+  - name: php_version
+    value: PHP_VERSION=
+  - name: gitlab_deploy_user
+    value: GITLAB_DEPLOY_USER=
+  - name: gitlab_deploy_password
+    value: GITLAB_DEPLOY_PASSWORD=

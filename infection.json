@@ -1,0 +1,25 @@
+{
+    "$schema": "https://raw.githubusercontent.com/infection/infection/0.26.10/resources/schema.json",
+    "source": {
+        "directories": [
+            "app/Containers"
+        ],
+        "excludes": [
+            "Nova/",
+            "Data/",
+            "Tests/",
+            "Requests/",
+            "Transfers/"
+        ]
+    },
+    "timeout": 90,
+    "logs": {
+        "text": "infection.log"
+    },
+    "mutators": {
+        "@default": true,
+        "@cast": true,
+        "@boolean": true,
+        "@function_signature": false
+    }
+}

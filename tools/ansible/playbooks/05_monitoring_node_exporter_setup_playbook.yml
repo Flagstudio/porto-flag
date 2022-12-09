@@ -1,0 +1,4 @@
+- name: Install node_exporter monitoring service
+  hosts: production
+  roles:
+    - build_and_up_node_exporter_service

@@ -1,0 +1,27 @@
+- name: Create postgres database
+  shell: psql -U postgres -c "create database {{db_database}};"
+  args:
+    chdir: "{{project_remote_path}}"
+  become: yes
+  when: (db_connection == 'pgsql') and (database_dump_local_path | default(False))
+
+- name: Create postgres user
+  shell: psql -U postgres -c "create user {{db_username}} with encrypted password '{{db_password}}';"
+  args:
+    chdir: "{{project_remote_path}}"
+  become: yes
+  when: (db_connection == 'pgsql') and (database_dump_local_path | default(False))
+
+- name: Grant user privileges
+  shell: psql -U postgres -c "grant all privileges on database {{db_database}} to {{db_username}};"
+  args:
+    chdir: "{{project_remote_path}}"
+  become: yes
+  when: (db_connection == 'pgsql') and (database_dump_local_path | default(False))
+
+- name: Import postgres database
+  shell: cat ./{{database_dump_remote_path}} | psql -U postgres -d {{db_database}}
+  args:
+    chdir: "{{project_remote_path}}"
+  become: yes
+  when: (db_connection == 'pgsql') and (database_dump_local_path | default(False))

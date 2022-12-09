@@ -1,0 +1,14 @@
+
+- name: Deploy infrastructure for project
+  hosts: production
+  roles:
+    - create_project
+    - copy_project_files
+    - get_env_variables
+    - create_and_set_permissions_for_data_dir
+    - login_into_registry
+    - create_docker_network
+    - build_and_up_database_service
+    - import_database
+    - build_and_up_docker_services
+    - create_symlink

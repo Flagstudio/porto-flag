@@ -1,0 +1,29 @@
+---
+version: '3.5'
+
+networks:
+  traefik-public:
+    external: true
+
+services:
+  node_exporter:
+    image: quay.io/prometheus/node-exporter:v1.4.0
+    container_name: node_exporter
+    command:
+      - '--path.rootfs=/host'
+    pid: host
+    restart: unless-stopped
+    volumes:
+      - '/:/host:ro,rslave'
+    networks:
+      - traefik-public
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik-public
+      - traefik.http.middlewares.nodeexporter-ipwl.ipwhitelist.sourcerange=${IP_WHITELIST}
+      - traefik.http.routers.cadvisor-rtr.middlewares=nodeexporter-ipwl
+
+      - traefik.http.routers.nodeexporter-rtr.rule=Host(`$NODE_MONITOR_HOST_IP`)
+      - traefik.http.routers.nodeexporter-rtr.service=nodeexporter-srv
+      - traefik.http.routers.nodeexporter-rtr.entrypoints=nodeexporter-ep
+      - traefik.http.services.nodeexporter-srv.loadbalancer.server.port=9100

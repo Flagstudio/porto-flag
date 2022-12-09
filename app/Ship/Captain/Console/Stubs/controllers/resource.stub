@@ -1,0 +1,62 @@
+<?php
+
+namespace App\{{layer-name}}\{{container-name}}\Http\Controllers\{{ui}};
+
+use App\Ship\Parents\Controllers\{{base-controller}};
+
+class {{class-name}} extends {{base-controller}}
+{
+    public function index()
+    {
+        return $this->action(
+            IndexAction::class,
+        );
+    }
+
+    public function create()
+    {
+        return $this->action(
+            CreateAction::class,
+        );
+    }
+
+    public function store(StoreRequest $request)
+    {
+        return $this->action(
+            StoreAction::class,
+            $request->transportered(),
+        );
+    }
+
+    public function show(ShowRequest $request)
+    {
+        return $this->action(
+            ShowAction::class,
+            $request->transportered(),
+        );
+    }
+
+    public function edit(EditRequest $request)
+    {
+        return $this->action(
+            EditAction::class,
+            $request->transportered(),
+        );
+    }
+
+    public function update(UpdateRequest $request)
+    {
+        return $this->action(
+            UpdateAction::class,
+            $request->transportered(),
+        );
+    }
+
+    public function destroy(DestroyRequest $request)
+    {
+        return $this->action(
+            DestroyAction::class,
+            $request->transportered(),
+        );
+    }
+}

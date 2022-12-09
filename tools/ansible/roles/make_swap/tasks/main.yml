@@ -1,0 +1,39 @@
+- name: "Check for swap exists"
+  command:
+    cmd: stat /swapfile
+  ignore_errors: yes
+  register: swap_exist_status
+
+- name: "Create swapfile 2GB"
+  command: "fallocate -l {{swap_gb_size}}G /swapfile"
+  register: write_swapfile
+  when: not swap_exist_status | default(False)
+
+- name: "Set swapfile permissions"
+  file: path=/swapfile mode=600
+  when: not swap_exist_status | default(False)
+
+- name: "Build swapfile"
+  command: mkswap "/swapfile"
+  register: create_swapfile
+  when: write_swapfile.changed
+
+- name: "Enable swapfile"
+  command: swapon "/swapfile"
+  when: create_swapfile.changed
+
+- name: "Add swapfile to /etc/fstab"
+  lineinfile: dest=/etc/fstab line="/swapfile   none    swap    sw    0   0" state=present
+  when: create_swapfile.changed
+
+- name: "Configure swappiness"
+  lineinfile: dest=/etc/sysctl.conf line="vm.swappiness = 10" regexp="^vm.swappiness[\s]?=" state=present
+  when: create_swapfile.changed
+
+- name: "Configure vm.vfs_cache_pressure"
+  lineinfile: dest=/etc/sysctl.conf line="vm.vfs_cache_pressure = 50" regexp="^vm.vfs_cache_pressure[\s]?=" state=present
+  when: create_swapfile.changed
+
+- name: sysctl
+  command: sysctl -p
+  when: create_swapfile.changed

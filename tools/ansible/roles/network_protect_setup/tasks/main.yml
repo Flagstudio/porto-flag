@@ -1,0 +1,63 @@
+- name: "Installing Network Software"
+  apt:
+    name:
+      - ufw
+      - fail2ban
+    state: present
+    update_cache: true
+  become: yes
+
+- name: "Stop UFW & Deny All Incoming"
+  ufw:
+    state: disabled
+  become: yes
+
+- name: "Deny All Incoming"
+  ufw:
+    policy: deny
+    direction: incoming
+  become: yes
+
+- name: "Allow All Outgoing"
+  ufw:
+    policy: allow
+    direction: outgoing
+  become: yes
+
+- name: "Allow SSH on 22"
+  ufw:
+    rule: allow
+    port: "22"
+    proto: tcp
+  become: yes
+
+- name: "Allow HTTP on 80"
+  ufw:
+    rule: allow
+    port: "80"
+    proto: tcp
+  become: yes
+
+- name: "Allow HTTPS on 443"
+  ufw:
+    rule: allow
+    port: "443"
+    proto: tcp
+  become: yes
+
+- name: Enable UFW
+  ufw:
+    state: enabled
+  become: yes
+
+- name: "Upload fail2ban jail.local"
+  copy:
+    src: jail.local
+    dest: /etc/fail2ban/jail.local
+  become: yes
+
+- name: "Restart fail2ban"
+  service:
+    name: fail2ban
+    state: restarted
+  become: yes

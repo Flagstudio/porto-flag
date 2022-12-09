@@ -1,0 +1,14 @@
+<?php
+
+namespace App\{{layer-name}}\{{container-name}}\Tests\{{type}};
+
+use App\Ship\Parents\Tests\PhpUnit\TestCase;
+
+class {{class-name}} extends TestCase
+{
+    public function test_()
+    {
+        //TODO write test
+        $this->assertEquals(false, true);
+    }
+}

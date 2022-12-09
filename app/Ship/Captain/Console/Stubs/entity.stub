@@ -1,0 +1,9 @@
+<?php
+
+namespace App\{{layer-name}}\{{container-name}}\Domain\Entities;
+
+use App\Ship\Parents\Entities\Entity;
+
+class {{class-name}} extends Entity
+{
+}

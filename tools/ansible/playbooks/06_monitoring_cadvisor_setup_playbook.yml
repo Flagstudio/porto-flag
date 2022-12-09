@@ -1,0 +1,4 @@
+- name: Install cadvisor monitoring service
+  hosts: production
+  roles:
+    - build_and_up_cadvisor_service

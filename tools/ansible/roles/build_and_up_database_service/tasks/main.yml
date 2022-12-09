@@ -1,0 +1,8 @@
+- name: Build and up database
+  shell: docker-compose up -d {{db_host}}
+  args:
+    chdir: "{{project_remote_path}}"
+
+- name: Wait for database up
+  wait_for:
+    timeout: 15

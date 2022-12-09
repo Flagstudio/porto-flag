@@ -1,0 +1,12 @@
+# required
+# Этот путь на локальном хосте
+# Путь должен быть абсолютным и заканчиваться '/', например: /home/user/projects/tairai/
+project_local_path: /home/user/projects/tairai/
+
+# Путь до файла с дампом базы данных по умолчанию
+# Не изменяйте это значение, считайте, что оно константное!
+database_dump_remote_path: db_backups/initial_database_dump.sql
+
+# версия оркестратора docker-compose (python version)
+# Не изменяйте это значение, считайте, что оно константное!
+docker_compose_version: 1.29.2

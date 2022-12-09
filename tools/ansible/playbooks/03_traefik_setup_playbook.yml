@@ -1,0 +1,4 @@
+- name: Install traefik as reverse proxy
+  hosts: production
+  roles:
+    - build_and_up_traefik

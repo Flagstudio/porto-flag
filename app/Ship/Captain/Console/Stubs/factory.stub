@@ -1,0 +1,18 @@
+<?php
+
+namespace App\{{layer-name}}\{{container-name}}\Data\Factories;
+
+use App\{{layer-name}}\{{container-name}}\Domain\Models\{{model-name}};
+use App\Ship\Captain\Abstracts\Factories\Factory;
+
+class {{class-name}} extends Factory
+{
+    protected $model = {{model-name}}::class;
+
+    public function definition(): array
+    {
+        return [
+            'title' => $this->faker->title,
+        ];
+    }
+}

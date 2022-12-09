@@ -1,0 +1,13 @@
+<?php
+
+namespace App\{{layer-name}}\{{container-name}}\ViewModels;
+
+use App\Ship\Parents\ViewModels\ViewModel;
+
+class {{class-name}} extends ViewModel
+{
+    public function defaultView(): string
+    {
+        return '';
+    }
+}

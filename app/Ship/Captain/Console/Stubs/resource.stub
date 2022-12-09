@@ -1,0 +1,13 @@
+<?php
+
+namespace App\{{layer-name}}\{{container-name}}\Transfers\Resources;
+
+use Illuminate\Http\Resources\Json\JsonResource;
+
+class {{class-name}} extends JsonResource
+{
+    public function toArray($request = null): array
+    {
+        return parent::toArray($request);
+    }
+}

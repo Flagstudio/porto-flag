@@ -1,0 +1,8 @@
+- name: Prepare common infrastructure
+  hosts: production
+  roles:
+    - install_packages
+    - password_login_disabling
+    - install_gitlab_stuff
+    - make_swap
+    - network_protect_setup

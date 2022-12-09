@@ -1,0 +1,45 @@
+- name: Create cadvisor directory
+  file:
+    path: "{{project_remote_path}}{{cadvisor_directory_name}}"
+    recurse: yes
+    state: directory
+    mode: "0775"
+    owner: "{{ansible_user}}"
+    group: "{{ansible_user}}"
+  become: yes
+
+- name: Upload cadvisor docker-compose.yml file
+  copy:
+    src: docker-compose.yml
+    dest: "{{project_remote_path}}{{cadvisor_directory_name}}docker-compose.yml"
+    mode: "0775"
+    owner: "{{ansible_user}}"
+    group: "{{ansible_user}}"
+
+- name: Create .env file
+  file:
+    path: "{{project_remote_path}}{{cadvisor_directory_name}}.env"
+    state: touch
+    mode: "0775"
+    owner: "{{ansible_user}}"
+    group: "{{ansible_user}}"
+  become: yes
+
+- name: Fill variables to the .env file
+  lineinfile:
+    path: "{{project_remote_path}}{{cadvisor_directory_name}}.env"
+    line: "{{item}}"
+    owner: "{{ansible_user}}"
+    group: "{{ansible_user}}"
+  with_items:
+    - IP_WHITELIST={{monitoring_node_ip}}
+    - CADVISOR_HOST_IP={{ansible_host}}
+
+- name: Build & up cadvisor service container
+  shell: docker-compose up -d
+  args:
+    chdir: "{{project_remote_path}}{{cadvisor_directory_name}}"
+
+- name: Wait for cadvisor service container up
+  wait_for:
+    timeout: 10

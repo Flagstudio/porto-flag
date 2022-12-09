@@ -1,0 +1,6 @@
+- name: Import postgres database
+  shell: cat ./{{database_dump_remote_path}} | docker-compose exec -T {{db_host}} psql -U {{db_username}} -d {{db_database}}
+  args:
+    chdir: "{{project_remote_path}}"
+  become: yes
+  when: (db_connection == 'pgsql') and (database_dump_local_path | default(False))

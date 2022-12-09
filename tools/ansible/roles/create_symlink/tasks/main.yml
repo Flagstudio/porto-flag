@@ -1,0 +1,6 @@
+- name: Create project symlink
+  file:
+    src: "{{project_remote_path}}"
+    dest: "{{project_symlink_remote_path}}"
+    state: link
+  when: project_symlink_remote_path | default(False)

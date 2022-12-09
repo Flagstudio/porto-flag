@@ -1,0 +1,7 @@
+#required
+# Не изменяйте это значение
+node_exporter_directory_name: node_exporter/
+
+#required
+# IP address сервера, на котором установлен мониторинг, запросы доступны только с этого адреса
+monitoring_node_ip:

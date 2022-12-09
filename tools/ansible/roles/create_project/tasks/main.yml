@@ -1,0 +1,19 @@
+- name: Create project directory
+  file:
+    path: "{{project_remote_path}}"
+    recurse: yes
+    state: directory
+    mode: "0775"
+    owner: "{{ansible_user}}"
+    group: "{{ansible_user}}"
+  become: yes
+
+- name: Create entire project directories
+  file:
+    path: "{{project_remote_path}}{{item}}"
+    state: directory
+    recurse: yes
+    mode: "0775"
+  with_items: "{{project_directories_path_need_to_be_created}}"
+  become: yes
+  when: item

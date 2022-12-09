@@ -1,0 +1,77 @@
+- name: Copy project files
+  copy:
+    src: "{{project_local_path}}{{item}}"
+    dest: "{{project_remote_path}}{{item}}"
+    owner: "{{ansible_user}}"
+    group: "{{ansible_user}}"
+    mode: "0775"
+  with_items: "{{project_files_path_for_upload}}"
+  when: item
+
+- name: Copy .env file
+  copy:
+    src: "{{project_local_path}}{{env_file_local_path_for_upload}}"
+    dest: "{{project_remote_path}}.env"
+    mode: "0775"
+    force: yes
+  when: env_file_local_path_for_upload | default(False)
+
+- name: Copy docker-compose.yml file
+  copy:
+    src: "{{project_local_path}}{{docker_compose_file_local_path_for_upload}}"
+    dest: "{{project_remote_path}}docker-compose.yml"
+    mode: "0775"
+    force: yes
+  when: docker_compose_file_local_path_for_upload | default(False)
+
+- name: Create db_backups directory
+  file:
+    path: "{{project_remote_path}}db_backups"
+    state: directory
+
+- name: Copy database dump file
+  copy:
+    src: "{{project_local_path}}{{database_dump_local_path}}"
+    dest: "{{project_remote_path}}{{database_dump_remote_path}}"
+    mode: "0775"
+  when: database_dump_local_path | default(False)
+
+- name: Copy storage archive file
+  copy:
+    src: "{{project_local_path}}{{storage_archive_local_path}}"
+    dest: "{{project_remote_path}}storage.tar.gz"
+    mode: "0775"
+  when: storage_archive_local_path | default(False)
+
+- name: Copy default storage archive file
+  copy:
+    src: storage.tar.gz
+    dest: "{{project_remote_path}}storage.tar.gz"
+    mode: "0775"
+  when: not storage_archive_local_path | default(None)
+
+- name: Unarchive storage archive file
+  unarchive:
+    src: "{{project_remote_path}}storage.tar.gz"
+    dest: "{{project_remote_path}}"
+    remote_src: yes
+    owner: "{{ansible_user}}"
+    group: "{{ansible_user}}"
+    mode: "0777"
+  become: yes
+
+- name: Set perimissions for storage dir
+  file:
+    path: "{{project_remote_path}}storage"
+    recurse: yes
+    state: directory
+    mode: "0775"
+    owner: "{{ansible_user}}"
+    group: "{{ansible_user}}"
+  become: yes
+
+- name: Delete storage archive file
+  file:
+    path: "{{project_remote_path}}storage.tar.gz"
+    state: absent
+  become: yes

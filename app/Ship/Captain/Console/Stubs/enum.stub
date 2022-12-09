@@ -1,0 +1,12 @@
+<?php
+
+namespace App\{{layer-name}}\{{container-name}}\Domain\Properties\Enums;
+
+use App\Ship\Traits\EnumTrait;
+
+enum {{class-name}}: string
+{
+    use EnumTrait;
+
+    case name = 'value';
+}

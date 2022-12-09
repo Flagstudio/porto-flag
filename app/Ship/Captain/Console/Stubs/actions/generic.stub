@@ -1,0 +1,16 @@
+<?php
+
+namespace App\{{layer-name}}\{{container-name}}\Actions;
+
+use App\Ship\Captain\Abstracts\Responders\Responder;
+use App\Ship\Parents\Actions\Action;
+
+class {{class-name}} extends Action
+{
+    public function run($transporter): Responder
+    {
+        //TODO
+
+        return $this->success([]);
+    }
+}

@@ -1,0 +1,81 @@
+- name: Run "apt-get update"
+  apt:
+    update_cache: yes
+  become: yes
+
+- name: Install aptitude using apt
+  apt:
+    name: aptitude
+    force_apt_get: yes
+    state: present
+
+- name: Uninstall previous docker
+  apt:
+    name: "{{ item }}"
+    state: absent
+  loop: ["docker", "docker-engine", "docker.io", "containerd", "runc"]
+
+- name: Install required system packages
+  apt:
+    name: "{{ item }}"
+    update_cache: yes
+    state: latest
+  loop:
+    [
+      "apt-transport-https",
+      "ca-certificates",
+      "curl",
+      "gnupg",
+      "lsb-release",
+      "software-properties-common",
+      "python3-pip",
+      "virtualenv",
+      "python3-setuptools",
+      "tar",
+      "htop",
+      "mc",
+      "git",
+      "gzip",
+      "logrotate",
+      "apache2-utils",
+      "util-linux",
+    ]
+
+- name: symlink /usr/bin/python -> /usr/bin/python3
+  raw: |
+    if [ -f /usr/bin/python3 ] && [ ! -f /usr/bin/python ]; then
+      ln --symbolic /usr/bin/python3 /usr/bin/python;
+    fi
+  become: true
+
+- name: Add Docker GPG apt Key
+  apt_key:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    state: present
+
+- name: Add Docker Repository
+  apt_repository:
+    repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable
+    state: present
+
+- name: Update apt and install docker-ce
+  apt:
+    name: docker-ce
+    update_cache: yes
+    state: latest
+
+- name: Download docker-compose {{ docker_compose_version }}
+  get_url:
+    url: https://github.com/docker/compose/releases/download/{{ docker_compose_version }}/docker-compose-Linux-x86_64
+    dest: /usr/local/bin/docker-compose
+    mode: "u+x,g+x"
+
+- name: Install Docker Module for Python
+  pip:
+    name: docker
+
+- name: Add user to docker group
+  user:
+    name: "{{ansible_user}}"
+    groups: docker
+    append: yes

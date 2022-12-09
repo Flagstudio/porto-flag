@@ -1,0 +1,20 @@
+<?php
+
+namespace App\{{layer-name}}\{{container-name}}\Actions;
+
+use App\Ship\Captain\Abstracts\Responders\Responder;
+use App\Ship\Parents\Actions\Action;
+
+class {{class-name}} extends Action
+{
+    public function run($transporter): Responder
+    {
+        try {
+            //TODO
+
+            return $this->success([]);
+        } catch(\Exception $e) {
+            return $this->error($e->getMessage());
+        }
+    }
+}

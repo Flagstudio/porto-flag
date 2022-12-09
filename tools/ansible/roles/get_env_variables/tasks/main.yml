@@ -1,0 +1,27 @@
+- name: Copy shdotenv
+  copy:
+    src: shdotenv
+    dest: "{{project_remote_path}}"
+    mode: "0777"
+
+- name: Parse .env file
+  shell: . ./shdotenv -n > {{tmp_env_file_path}}
+  args:
+    chdir: "{{project_remote_path}}"
+
+- name: Set env variables
+  shell: echo $(grep {{item.value}} {{ tmp_env_file_path }} | grep -v -P '^\s*#' | cut -d '=' -f 2- | xargs)
+  register: env_vars
+  with_items: "{{env_keys_for_parse}}"
+
+- set_fact:
+    "{{item.item.name}}": "{{ item.stdout }}"
+  with_items: "{{env_vars.results}}"
+
+- name: Delete tmp files
+  file:
+    path: "{{item}}"
+    state: absent
+  with_items:
+    - "{{project_remote_path}}shdotenv"
+    - "{{tmp_env_file_path}}"

@@ -1,0 +1,14 @@
+<?php
+
+namespace App\{{layer-name}}\{{container-name}}\Actions;
+
+use App\Ship\Parents\Actions\WebAction;
+use App\Ship\Parents\ViewModels\ViewModel;
+
+class {{class-name}} extends WebAction
+{
+    public function run($transporter): ViewModel
+    {
+        //TODO
+    }
+}

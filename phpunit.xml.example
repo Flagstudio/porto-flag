@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit backupGlobals="false"
+         backupStaticAttributes="false"
+         bootstrap="vendor/autoload.php"
+         colors="true"
+         convertErrorsToExceptions="true"
+         convertNoticesToExceptions="true"
+         convertWarningsToExceptions="true"
+         processIsolation="false"
+         stopOnFailure="false">
+    <testsuites>
+        <testsuite name="Containers Tests">
+            <directory suffix="Test.php">./app/Containers/*/Tests</directory>
+        </testsuite>
+        <testsuite name="Sections Tests">
+            <directory suffix="Test.php">./app/Containers/*/*/Tests</directory>
+        </testsuite>
+        <testsuite name="Domain Tests">
+            <directory suffix="Test.php">./app/Containers/*/Domain/Tests</directory>
+            <directory suffix="Test.php">./app/Containers/*/*/Domain/Tests</directory>
+        </testsuite>
+        <testsuite name="Ship Tests">
+            <directory suffix="Test.php">./app/Ship/Tests</directory>
+        </testsuite>
+    </testsuites>
+    <coverage processUncoveredFiles="true">
+        <include>
+            <directory suffix=".php">./app/Containers/</directory>
+        </include>
+        <exclude>
+            <directory suffix=".php">./app/Containers/*/Nova/</directory>
+            <directory suffix=".php">./app/Containers/*/*/Nova/</directory>
+
+            <directory suffix=".php">./app/Containers/*/Transfers/</directory>
+            <directory suffix=".php">./app/Containers/*/*/Transfers/</directory>
+
+            <directory suffix=".php">./app/Containers/*/Test/</directory>
+            <directory suffix=".php">./app/Containers/*/*/Test/</directory>
+
+            <directory suffix=".php">./app/Containers/*/Domain/Test/</directory>
+            <directory suffix=".php">./app/Containers/*/*/Domain/Test/</directory>
+
+            <directory suffix=".php">./app/Containers/*/Data/</directory>
+            <directory suffix=".php">./app/Containers/*/*/Data/</directory>
+
+            <directory suffix=".php">./app/Containers/*/Http/Requests/</directory>
+            <directory suffix=".php">./app/Containers/*/*/Http/Requests/</directory>
+
+            <directory suffix=".php">./app/Containers/*/Http/Composers/</directory>
+            <directory suffix=".php">./app/Containers/*/*/Http/Composers/</directory>
+
+            <directory suffix=".php">./app/Containers/*/Exceptions/</directory>
+            <directory suffix=".php">./app/Containers/*/*/Exceptions/</directory>
+
+            <directory suffix=".php">./app/Containers/*/Domain/Exceptions/</directory>
+            <directory suffix=".php">./app/Containers/*/*/Domain/Exceptions/</directory>
+
+            <directory suffix=".php">./app/Containers/*/Providers/</directory>
+            <directory suffix=".php">./app/Containers/*/*/Providers/</directory>
+
+            <directory suffix=".php">./app/Containers/*/Helpers/</directory>
+            <directory suffix=".php">./app/Containers/*/*/Helpers/</directory>
+
+            <directory suffix=".php">./app/Containers/*/Mail/</directory>
+            <directory suffix=".php">./app/Containers/*/*/Mail/</directory>
+
+            <directory suffix=".php">./app/Containers/*/Events/</directory>
+            <directory suffix=".php">./app/Containers/*/*/Events/</directory>
+        </exclude>
+    </coverage>
+    <php>
+        <env name="APP_ENV" value="testing"/>
+        <env name="DB_CONNECTION" value="pgsqltest"/>
+        <env name="DB_DATABASE" value="tairai"/>
+        <env name="BCRYPT_ROUNDS" value="4"/>
+        <env name="CACHE_DRIVER" value="array"/>
+        <env name="SESSION_DRIVER" value="array"/>
+        <env name="QUEUE_DRIVER" value="sync"/>
+        <env name="QUEUE_CONNECTION" value="sync"/>
+        <env name="MAIL_DRIVER" value="array"/>
+        <env name="TELESCOPE_ENABLED" value="false"/>
+    </php>
+</phpunit>

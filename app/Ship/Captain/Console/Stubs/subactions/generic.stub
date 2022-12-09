@@ -1,0 +1,15 @@
+<?php
+
+namespace App\{{layer-name}}\{{container-name}}\Actions\SubAction;
+
+use App\Ship\Parents\Actions\SubAction;
+
+class {{class-name}} extends SubAction
+{
+    public function run($transporter)
+    {
+        //TODO
+
+        return $this->success([]);
+    }
+}

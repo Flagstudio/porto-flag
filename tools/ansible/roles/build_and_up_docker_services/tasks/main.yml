@@ -1,0 +1,25 @@
+- name: Build compose
+  shell: docker-compose up -d
+  args:
+    chdir: "{{project_remote_path}}"
+  become: yes
+
+- name: Wait for project up
+  wait_for:
+    timeout: 5
+
+- name: Add chmod to storage
+  shell: docker-compose exec -T app chmod -R 0777 storage
+  args:
+    chdir: "{{project_remote_path}}"
+
+- name: Run storage:link
+  shell: docker-compose exec -T app php artisan storage:link
+  args:
+    chdir: "{{project_remote_path}}"
+
+- name: Run migrations & seeders if has no database dump
+  shell: docker-compose exec -T app php artisan migrate --seed
+  args:
+    chdir: "{{project_remote_path}}"
+  when: not database_dump_local_path | default(False)

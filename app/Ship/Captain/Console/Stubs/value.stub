@@ -1,0 +1,7 @@
+<?php
+
+namespace App\{{layer-name}}\{{container-name}}\Domain\Properties\Values;
+
+class {{class-name}}
+{
+}

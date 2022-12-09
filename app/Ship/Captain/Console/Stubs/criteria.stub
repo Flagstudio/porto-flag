@@ -1,0 +1,16 @@
+<?php
+
+namespace App\{{layer-name}}\{{container-name}}\Domain\Repositories\Criterias;
+
+use App\Ship\Parents\Criterias\Criteria;
+use Prettus\Repository\Contracts\RepositoryInterface;
+
+class {{class-name}} extends Criteria
+{
+    public function __construct() {}
+
+    public function apply($model, RepositoryInterface $repository)
+    {
+        return $model->where('id', 1);
+    }
+}

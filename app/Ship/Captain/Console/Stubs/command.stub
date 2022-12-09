@@ -1,0 +1,22 @@
+<?php
+
+namespace App\{{layer-name}}\{{container-name}}\Console;
+
+use App\Ship\Parents\Commands\ConsoleCommand;
+
+class {{class-name}} extends ConsoleCommand
+{
+    protected $signature = 'command';
+
+    protected $description = 'The console command description';
+
+    public function __construct()
+    {
+        parent::__construct();
+    }
+
+    public function handle(): void
+    {
+        //TODO
+    }
+}

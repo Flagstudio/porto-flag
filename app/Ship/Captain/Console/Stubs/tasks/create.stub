@@ -1,0 +1,25 @@
+<?php
+
+namespace App\{{layer-name}}\{{container-name}}\Tasks;
+
+use App\{{layer-name}}\{{container-name}}\Data\Repositories\{{model}}Repository;
+use App\Ship\Exceptions\CreateResourceFailedException;
+use App\Ship\Parents\Tasks\Task;
+use Exception;
+
+class Create{{model}}Task extends Task
+{
+    public function __construct(
+        protected {{model}}Repository $repository
+    ) {}
+
+    public function run(array $data)
+    {
+        try {
+            return $this->repository->create($data);
+        }
+        catch (Exception $exception) {
+            throw new CreateResourceFailedException();
+        }
+    }
+}

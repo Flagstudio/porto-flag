@@ -1,0 +1,6 @@
+
+- name: Adding SSH keys to remote host
+  hosts: production
+  gather_facts: no
+  roles:
+    - ssh_key_transfer

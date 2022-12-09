@@ -1,0 +1,23 @@
+<?php
+
+namespace App\{{layer-name}}\{{container-name}}\Transfers\Transporters\Casters;
+
+use App\{{layer-name}}\{{container-name}}\Domain\Properties\Collections\{{collection-name}};
+use App\{{layer-name}}\{{container-name}}\Domain\Properties\Collections\Items\{{item-name}};
+use Spatie\DataTransferObject\Caster;
+
+class {{class-name}} implements Caster
+{
+    public function cast(mixed $value): {{collection-name}}
+    {
+        $collection = new {{collection-name}}();
+
+        foreach ($value as $item) {
+            $collection->push(
+                new {{item-name}}($item)
+            );
+        }
+
+        return $collection;
+    }
+}

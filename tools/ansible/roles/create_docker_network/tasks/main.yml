@@ -1,0 +1,10 @@
+- name: Check for network exists
+  command:
+    cmd: docker network inspect {{compose_project_name}}
+  ignore_errors: yes
+  register: network_exist_status
+
+- name: Create network
+  command:
+    cmd: docker network create {{compose_project_name}}
+  when: (compose_project_name | default(False)) and (network_exist_status.failed)
